@@ -220,6 +220,60 @@
         </div>
     </section>
 
+    <!-- ═══════════ LIVE GAME WIDGET ═══════════ -->
+    <div id="liveGameWidget" class="hidden">
+        <div class="bg-gradient-to-r from-lebron-dark via-[#1a1a2e] to-lebron-dark py-4 border-y border-lebron-gold/20">
+            <div class="container mx-auto px-4 max-w-4xl">
+                <div class="flex items-center justify-center gap-2 mb-3">
+                    <span id="livePulse" class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                    <span class="font-display text-xs uppercase tracking-[0.3em] text-red-400" id="liveLabel">LIVE</span>
+                </div>
+                <div class="flex items-center justify-center gap-6 md:gap-10">
+                    <div class="text-center">
+                        <div class="font-display text-sm uppercase tracking-wider text-gray-400" id="awayTeam">---</div>
+                        <div class="font-display text-3xl md:text-5xl font-bold text-white" id="awayScore">0</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lebron-gold font-display text-xs uppercase tracking-wider" id="gameStatus">--</div>
+                        <div class="text-gray-600 text-lg">vs</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-display text-sm uppercase tracking-wider text-lebron-gold" id="homeTeam">---</div>
+                        <div class="font-display text-3xl md:text-5xl font-bold text-lebron-gold" id="homeScore">0</div>
+                    </div>
+                </div>
+                <!-- LeBron's Live Stats -->
+                <div id="lebronLiveStats" class="hidden mt-4 pt-3 border-t border-white/10">
+                    <div class="text-center mb-2">
+                        <span class="font-display text-xs uppercase tracking-[0.2em] text-lebron-gold/70">LeBron Tonight</span>
+                    </div>
+                    <div class="flex justify-center gap-8">
+                        <div class="text-center">
+                            <div class="font-display text-2xl font-bold text-white" id="lbPts">0</div>
+                            <div class="text-gray-500 text-[10px] uppercase tracking-wider">PTS</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-display text-2xl font-bold text-white" id="lbReb">0</div>
+                            <div class="text-gray-500 text-[10px] uppercase tracking-wider">REB</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-display text-2xl font-bold text-white" id="lbAst">0</div>
+                            <div class="text-gray-500 text-[10px] uppercase tracking-wider">AST</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-display text-2xl font-bold text-white" id="lbStl">0</div>
+                            <div class="text-gray-500 text-[10px] uppercase tracking-wider">STL</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-display text-2xl font-bold text-white" id="lbBlk">0</div>
+                            <div class="text-gray-500 text-[10px] uppercase tracking-wider">BLK</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="section-divider"></div>
 
     <!-- ═══════════ CAREER: STATS + TIMELINE ═══════════ -->
@@ -722,6 +776,143 @@
                 card.style.setProperty('--mouse-y', ((e.clientY-r.top)/r.height*100)+'%');
             });
         });
+
+        // ═══════════ LIVE GAME AUTO-SYNC ═══════════
+        (function() {
+            const LAKERS_ID = 1610612747;
+            const LEBRON_ID = 2544;
+            const API = '/api/nba';
+            let pollTimer = null;
+            let currentGameId = null;
+
+            const widget = document.getElementById('liveGameWidget');
+            const els = {
+                awayTeam: document.getElementById('awayTeam'),
+                awayScore: document.getElementById('awayScore'),
+                homeTeam: document.getElementById('homeTeam'),
+                homeScore: document.getElementById('homeScore'),
+                gameStatus: document.getElementById('gameStatus'),
+                liveLabel: document.getElementById('liveLabel'),
+                livePulse: document.getElementById('livePulse'),
+                lebronStats: document.getElementById('lebronLiveStats'),
+                pts: document.getElementById('lbPts'),
+                reb: document.getElementById('lbReb'),
+                ast: document.getElementById('lbAst'),
+                stl: document.getElementById('lbStl'),
+                blk: document.getElementById('lbBlk')
+            };
+
+            async function fetchJSON(url) {
+                try {
+                    const r = await fetch(url);
+                    if (!r.ok) return null;
+                    return await r.json();
+                } catch { return null; }
+            }
+
+            async function checkScoreboard() {
+                const data = await fetchJSON(API + '?type=scoreboard');
+                if (!data || !data.scoreboard) return null;
+
+                const games = data.scoreboard.games || [];
+                for (const g of games) {
+                    const home = g.homeTeam, away = g.awayTeam;
+                    if (home.teamId === LAKERS_ID || away.teamId === LAKERS_ID) {
+                        return g;
+                    }
+                }
+                return null;
+            }
+
+            function updateWidget(game) {
+                if (!game) { widget.classList.add('hidden'); return; }
+
+                const status = game.gameStatusText || game.gameStatus;
+                const isLive = game.gameStatus === 2;
+                const isFinal = game.gameStatus === 3;
+                const isScheduled = game.gameStatus === 1;
+
+                if (isScheduled) {
+                    // Game hasn't started yet — show pregame
+                    widget.classList.remove('hidden');
+                    els.liveLabel.textContent = 'TONIGHT';
+                    els.liveLabel.className = 'font-display text-xs uppercase tracking-[0.3em] text-lebron-gold';
+                    els.livePulse.className = 'inline-block w-2.5 h-2.5 rounded-full bg-lebron-gold animate-pulse';
+                    els.lebronStats.classList.add('hidden');
+                } else if (isLive) {
+                    widget.classList.remove('hidden');
+                    els.liveLabel.textContent = 'LIVE';
+                    els.liveLabel.className = 'font-display text-xs uppercase tracking-[0.3em] text-red-400';
+                    els.livePulse.className = 'inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse';
+                } else if (isFinal) {
+                    widget.classList.remove('hidden');
+                    els.liveLabel.textContent = 'FINAL';
+                    els.liveLabel.className = 'font-display text-xs uppercase tracking-[0.3em] text-gray-400';
+                    els.livePulse.className = 'inline-block w-2.5 h-2.5 rounded-full bg-gray-500';
+                }
+
+                els.homeTeam.textContent = game.homeTeam.teamTricode;
+                els.awayTeam.textContent = game.awayTeam.teamTricode;
+                els.homeScore.textContent = game.homeTeam.score;
+                els.awayScore.textContent = game.awayTeam.score;
+                els.gameStatus.textContent = typeof status === 'string' ? status.trim() : '';
+
+                // Highlight Lakers side in gold
+                const lakersHome = game.homeTeam.teamId === LAKERS_ID;
+                els.homeTeam.className = 'font-display text-sm uppercase tracking-wider ' + (lakersHome ? 'text-lebron-gold' : 'text-gray-400');
+                els.homeScore.className = 'font-display text-3xl md:text-5xl font-bold ' + (lakersHome ? 'text-lebron-gold' : 'text-white');
+                els.awayTeam.className = 'font-display text-sm uppercase tracking-wider ' + (!lakersHome ? 'text-lebron-gold' : 'text-gray-400');
+                els.awayScore.className = 'font-display text-3xl md:text-5xl font-bold ' + (!lakersHome ? 'text-lebron-gold' : 'text-white');
+
+                currentGameId = game.gameId;
+                if (isLive || isFinal) fetchBoxScore(game.gameId);
+            }
+
+            async function fetchBoxScore(gameId) {
+                const data = await fetchJSON(API + '?type=boxscore&gameId=' + gameId);
+                if (!data || !data.game) return;
+
+                const allPlayers = [
+                    ...(data.game.homeTeam?.players || []),
+                    ...(data.game.awayTeam?.players || [])
+                ];
+                const lb = allPlayers.find(p => p.personId === LEBRON_ID);
+                if (!lb || !lb.statistics) { els.lebronStats.classList.add('hidden'); return; }
+
+                els.lebronStats.classList.remove('hidden');
+                const s = lb.statistics;
+                els.pts.textContent = s.points || 0;
+                els.reb.textContent = s.reboundsTotal || 0;
+                els.ast.textContent = s.assists || 0;
+                els.stl.textContent = s.steals || 0;
+                els.blk.textContent = s.blocks || 0;
+
+                // Update career points counter with live total
+                const careerPtsEl = document.querySelector('.counter[data-target]');
+                if (careerPtsEl && s.points) {
+                    const base = +careerPtsEl.dataset.target;
+                    const liveTotal = base + s.points;
+                    careerPtsEl.textContent = liveTotal.toLocaleString();
+                }
+            }
+
+            async function poll() {
+                const game = await checkScoreboard();
+                updateWidget(game);
+
+                // Adjust poll rate: 30s live, 5min pregame, 10min no game
+                let interval;
+                if (game && game.gameStatus === 2) interval = 30000;       // live: 30s
+                else if (game && game.gameStatus === 1) interval = 300000; // pregame: 5min
+                else if (game && game.gameStatus === 3) interval = 0;      // final: stop
+                else interval = 600000;                                     // no game: 10min
+
+                if (interval > 0) pollTimer = setTimeout(poll, interval);
+            }
+
+            // Start polling
+            poll();
+        })();
     </script>
 </body>
 </html>
