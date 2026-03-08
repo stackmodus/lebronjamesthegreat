@@ -1,7 +1,7 @@
 // Cloudflare Pages Function — handles contact form submissions
 // Forwards messages to site owner's email via Web3Forms (free, no email exposed)
 
-const WEB3FORMS_KEY = ''; // Set in Cloudflare Pages environment variable: CONTACT_API_KEY
+const WEB3FORMS_KEY = '933e1612-10c5-41a9-b163-25c2ac9a235f';
 
 export async function onRequestPost(context) {
   const corsHeaders = {
