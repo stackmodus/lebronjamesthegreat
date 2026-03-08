@@ -707,9 +707,41 @@
             </div>
 
             <div class="section-divider mb-6"></div>
-            <p class="text-gray-600 text-xs">&copy; 2025 LeBron James Tribute. Fan-created site.</p>
+            <p class="text-gray-600 text-xs mb-3">&copy; 2025 LeBron James Tribute. Fan-created site.</p>
+            <button onclick="document.getElementById('contactModal').classList.remove('hidden')" class="text-gray-500 hover:text-lebron-gold text-xs uppercase tracking-wider font-display transition-colors">Contact Site Owner</button>
         </div>
     </footer>
+
+    <!-- ═══════════ CONTACT MODAL ═══════════ -->
+    <div id="contactModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="document.getElementById('contactModal').classList.add('hidden')"></div>
+        <div class="relative bg-[#111] border border-white/10 rounded-2xl p-6 md:p-8 max-w-md w-full">
+            <button onclick="document.getElementById('contactModal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors" aria-label="Close">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <h3 class="font-display text-xl uppercase tracking-wider text-lebron-gold mb-1">Contact</h3>
+            <p class="text-gray-500 text-xs mb-6">Send us a message — we'd love to hear from you.</p>
+            <form id="contactForm" class="space-y-4" onsubmit="submitContact(event)">
+                <div>
+                    <input type="text" name="name" placeholder="Your Name" required maxlength="100"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-lebron-gold/50 transition-colors">
+                </div>
+                <div>
+                    <input type="email" name="email" placeholder="Your Email" required maxlength="200"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-lebron-gold/50 transition-colors">
+                </div>
+                <div>
+                    <textarea name="message" placeholder="Your Message" required maxlength="2000" rows="4"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-lebron-gold/50 transition-colors resize-none"></textarea>
+                </div>
+                <button type="submit" id="contactBtn"
+                    class="w-full bg-lebron-gold text-black font-display uppercase tracking-wider text-sm py-3 rounded-lg hover:bg-yellow-400 transition-colors font-bold">
+                    Send Message
+                </button>
+                <p id="contactStatus" class="text-center text-xs hidden"></p>
+            </form>
+        </div>
+    </div>
 
     <!-- ═══════════ JAVASCRIPT ═══════════ -->
     <script>
@@ -913,6 +945,44 @@
             // Start polling
             poll();
         })();
+
+        // Contact form
+        async function submitContact(e) {
+            e.preventDefault();
+            const form = document.getElementById('contactForm');
+            const btn = document.getElementById('contactBtn');
+            const status = document.getElementById('contactStatus');
+            const data = Object.fromEntries(new FormData(form));
+
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            status.classList.add('hidden');
+
+            try {
+                const r = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const res = await r.json();
+                if (r.ok && res.success) {
+                    status.textContent = res.message;
+                    status.className = 'text-center text-xs text-green-400';
+                    status.classList.remove('hidden');
+                    form.reset();
+                } else {
+                    status.textContent = res.error || 'Something went wrong.';
+                    status.className = 'text-center text-xs text-red-400';
+                    status.classList.remove('hidden');
+                }
+            } catch {
+                status.textContent = 'Network error. Please try again.';
+                status.className = 'text-center text-xs text-red-400';
+                status.classList.remove('hidden');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Send Message';
+        }
     </script>
 </body>
 </html>
