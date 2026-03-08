@@ -959,19 +959,26 @@
             status.classList.add('hidden');
 
             try {
-                const r = await fetch('/api/contact', {
+                const r = await fetch('https://api.web3forms.com/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify({
+                        access_key: '933e1612-10c5-41a9-b163-25c2ac9a235f',
+                        name: data.name,
+                        email: data.email,
+                        message: data.message,
+                        subject: 'LeBron Tribute Site — Message from ' + data.name,
+                        from_name: 'LeBron James Tribute Site'
+                    })
                 });
                 const res = await r.json();
-                if (r.ok && res.success) {
-                    status.textContent = res.message;
+                if (res.success) {
+                    status.textContent = 'Message sent! We\'ll get back to you soon.';
                     status.className = 'text-center text-xs text-green-400';
                     status.classList.remove('hidden');
                     form.reset();
                 } else {
-                    status.textContent = res.error || 'Something went wrong.';
+                    status.textContent = res.message || 'Something went wrong.';
                     status.className = 'text-center text-xs text-red-400';
                     status.classList.remove('hidden');
                 }
