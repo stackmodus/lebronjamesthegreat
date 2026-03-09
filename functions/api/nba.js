@@ -11,17 +11,20 @@ export async function onRequest(context) {
     target = `${NBA_CDN}/scoreboard/todaysScoreboard_00.json`;
   } else if (type === 'boxscore' && gameId) {
     target = `${NBA_CDN}/boxscore/boxscore_${gameId}.json`;
+  } else if (type === 'schedule') {
+    target = 'https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json';
   } else {
-    return new Response(JSON.stringify({ error: 'Invalid request. Use ?type=scoreboard or ?type=boxscore&gameId=XXXX' }), {
+    return new Response(JSON.stringify({ error: 'Invalid request. Use ?type=scoreboard, ?type=schedule, or ?type=boxscore&gameId=XXXX' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
   }
 
   try {
+    const cacheTtl = type === 'schedule' ? 3600 : 20;
     const resp = await fetch(target, {
       headers: { 'Accept': 'application/json' },
-      cf: { cacheTtl: 20 } // cache 20s at edge
+      cf: { cacheTtl }
     });
 
     if (!resp.ok) {
@@ -36,7 +39,7 @@ export async function onRequest(context) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'public, max-age=20'
+        'Cache-Control': `public, max-age=${type === 'schedule' ? 3600 : 20}`
       }
     });
   } catch (err) {
