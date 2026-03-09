@@ -1,0 +1,25 @@
+{
+  "name": "LeBron James: More Than an Athlete",
+  "short_name": "LeBron",
+  "description": "A tribute to LeBron James - celebrating his basketball greatness, philanthropy, and global impact.",
+  "start_url": "/lebronjamesthegreat/",
+  "scope": "/lebronjamesthegreat/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#4A148C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
