@@ -83,17 +83,17 @@
         .stat-card {
             background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
             border: 1px solid rgba(255,215,0,0.15); backdrop-filter: blur(12px);
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); position: relative; overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); position: relative; overflow: visible;
         }
         .stat-card::after {
-            content: ''; position: absolute; inset: 0;
+            content: ''; position: absolute; inset: 0; border-radius: inherit;
             background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,215,0,0.08) 0%, transparent 60%);
-            opacity: 0; transition: opacity 0.4s; pointer-events: none;
+            opacity: 0; transition: opacity 0.4s; pointer-events: none; overflow: hidden;
         }
         .stat-card:hover::after { opacity: 1; }
         .stat-card:hover { border-color: rgba(255,215,0,0.5); transform: translateY(-6px); box-shadow: 0 20px 60px rgba(255,215,0,0.15); }
         .stat-number {
-            font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; line-height: 1;
+            font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.75rem, 6vw, 3.5rem); line-height: 1.2;
             background: linear-gradient(180deg, #FFD700, #FF8C00);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
@@ -105,7 +105,7 @@
         .glass-card {
             background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
             border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(16px);
-            border-radius: 16px; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); overflow: hidden; position: relative;
+            border-radius: 16px; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); overflow: visible; position: relative;
         }
         .glass-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.3), transparent); }
         .glass-card:hover { border-color: rgba(255,215,0,0.3); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px rgba(255,215,0,0.08); }
@@ -145,7 +145,7 @@
         .timeline-item { opacity: 0; transform: translateX(-30px); transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
         .timeline-item.visible { opacity: 1; transform: translateX(0); }
 
-        .impact-number { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; background: linear-gradient(180deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .impact-number { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.8rem, 5vw, 2.5rem); line-height: 1.15; background: linear-gradient(180deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
         .video-glow { border-radius: 12px; overflow: hidden; box-shadow: 0 0 40px rgba(74,20,140,0.3); transition: box-shadow 0.4s; }
         .video-glow:hover { box-shadow: 0 0 60px rgba(255,215,0,0.2), 0 0 40px rgba(74,20,140,0.4); }
@@ -290,22 +290,22 @@
             </div>
 
             <!-- Stats row -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto mb-8">
-                <div class="stat-card rounded-2xl p-6 text-center reveal">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 max-w-5xl mx-auto mb-8">
+                <div class="stat-card rounded-2xl px-3 py-5 md:p-6 text-center reveal">
                     <div class="stat-number counter" data-target="43127">0</div>
-                    <p class="text-gray-400 text-sm mt-2 uppercase tracking-wider font-display">Career Points</p>
+                    <p class="text-gray-400 text-[10px] md:text-sm mt-2 uppercase tracking-wider font-display">Career Points</p>
                 </div>
-                <div class="stat-card rounded-2xl p-6 text-center reveal reveal-delay-1">
+                <div class="stat-card rounded-2xl px-3 py-5 md:p-6 text-center reveal reveal-delay-1">
                     <div class="stat-number counter" data-target="11892">0</div>
-                    <p class="text-gray-400 text-sm mt-2 uppercase tracking-wider font-display">Assists</p>
+                    <p class="text-gray-400 text-[10px] md:text-sm mt-2 uppercase tracking-wider font-display">Assists</p>
                 </div>
-                <div class="stat-card rounded-2xl p-6 text-center reveal reveal-delay-2">
+                <div class="stat-card rounded-2xl px-3 py-5 md:p-6 text-center reveal reveal-delay-2">
                     <div class="stat-number counter" data-target="11979">0</div>
-                    <p class="text-gray-400 text-sm mt-2 uppercase tracking-wider font-display">Rebounds</p>
+                    <p class="text-gray-400 text-[10px] md:text-sm mt-2 uppercase tracking-wider font-display">Rebounds</p>
                 </div>
-                <div class="stat-card rounded-2xl p-6 text-center reveal reveal-delay-3">
+                <div class="stat-card rounded-2xl px-3 py-5 md:p-6 text-center reveal reveal-delay-3">
                     <div class="stat-number counter" data-target="4">0</div>
-                    <p class="text-gray-400 text-sm mt-2 uppercase tracking-wider font-display">Championships</p>
+                    <p class="text-gray-400 text-[10px] md:text-sm mt-2 uppercase tracking-wider font-display">Championships</p>
                 </div>
             </div>
 
