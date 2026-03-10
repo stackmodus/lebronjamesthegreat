@@ -167,6 +167,7 @@
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="#career" class="nav-link">Career</a>
                     <a href="#impact" class="nav-link">Impact</a>
+                    <a href="#news" class="nav-link">News</a>
                     <a href="#schedule" class="nav-link">Schedule</a>
                     <a href="#gallery" class="nav-link">Gallery</a>
                     <a href="#tributes" class="nav-link">Tributes</a>
@@ -185,6 +186,7 @@
         <div class="flex flex-col items-center justify-center h-full space-y-8">
             <a href="#career" class="font-display text-3xl uppercase tracking-widest hover:text-lebron-gold transition-colors" onclick="closeMobileMenu()">Career</a>
             <a href="#impact" class="font-display text-3xl uppercase tracking-widest hover:text-lebron-gold transition-colors" onclick="closeMobileMenu()">Impact</a>
+            <a href="#news" class="font-display text-3xl uppercase tracking-widest hover:text-lebron-gold transition-colors" onclick="closeMobileMenu()">News</a>
             <a href="#gallery" class="font-display text-3xl uppercase tracking-widest hover:text-lebron-gold transition-colors" onclick="closeMobileMenu()">Gallery</a>
             <a href="#tributes" class="font-display text-3xl uppercase tracking-widest hover:text-lebron-gold transition-colors" onclick="closeMobileMenu()">Tributes</a>
             <button onclick="closeMobileMenu()" class="absolute top-6 right-6 text-white hover:text-lebron-gold transition-colors" aria-label="Close menu">
@@ -392,6 +394,38 @@
                     <iframe class="w-full h-full" src="https://www.youtube.com/embed/_JcrlQyyvl8" title="LeBron James Breaks the All-Time Scoring Record" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
                 </div>
             </div>
+        </div>
+    </section>
+
+
+    <!-- ═══════════ NEWS & INJURY STATUS ═══════════ -->
+    <section id="news" class="section-purple py-10 md:py-16">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <div class="text-center mb-8 reveal">
+                <p class="font-display text-lebron-gold/60 uppercase tracking-[0.3em] text-sm mb-1">Stay Updated</p>
+                <h2 class="text-4xl md:text-6xl font-display font-bold uppercase gradient-text">Latest News</h2>
+            </div>
+
+            <!-- Injury/Status Banner -->
+            <div id="statusBanner" class="mb-6 reveal hidden">
+                <div class="glass-card rounded-xl p-4 md:p-5 flex items-center gap-4 border-l-4" id="statusCard">
+                    <div id="statusIcon" class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-xl"></div>
+                    <div>
+                        <p class="font-display uppercase tracking-wider text-sm" id="statusLabel"></p>
+                        <p class="text-gray-400 text-sm mt-0.5" id="statusDetail"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- News Grid -->
+            <div id="newsGrid" class="grid md:grid-cols-2 gap-4 reveal">
+                <div class="text-center py-8 md:col-span-2">
+                    <div class="inline-block w-6 h-6 border-2 border-lebron-gold/30 border-t-lebron-gold rounded-full animate-spin"></div>
+                    <p class="text-gray-500 text-sm mt-3 font-display uppercase tracking-wider">Loading news...</p>
+                </div>
+            </div>
+
+            <p class="text-center text-gray-600 text-xs mt-6 font-display uppercase tracking-wider">News updated live via ESPN</p>
         </div>
     </section>
 
@@ -824,6 +858,117 @@
 
             // Start polling
             poll();
+        })();
+
+        // ===== News & Injury Status =====
+        (async function loadNews() {
+            const ESPN_TEAM = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/13';
+            const ESPN_NEWS = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/news?limit=20';
+            const grid = document.getElementById('newsGrid');
+            const banner = document.getElementById('statusBanner');
+            const statusCard = document.getElementById('statusCard');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusLabel = document.getElementById('statusLabel');
+            const statusDetail = document.getElementById('statusDetail');
+
+            // Fetch injury status from roster
+            try {
+                const teamRes = await fetch(ESPN_TEAM + '/roster');
+                if (teamRes.ok) {
+                    const teamData = await teamRes.json();
+                    const athletes = teamData.athletes || [];
+                    let lebron = null;
+                    for (const group of athletes) {
+                        for (const a of (group.items || [])) {
+                            if (a.displayName && a.displayName.includes('LeBron')) lebron = a;
+                        }
+                    }
+                    if (!lebron) {
+                        // Flat roster format
+                        for (const a of (teamData.athletes || [])) {
+                            if (a.displayName && a.displayName.includes('LeBron')) lebron = a;
+                        }
+                    }
+                    if (lebron && lebron.injuries && lebron.injuries.length > 0) {
+                        const injury = lebron.injuries[0];
+                        const status = (injury.status || '').toLowerCase();
+                        banner.classList.remove('hidden');
+                        if (status === 'out') {
+                            statusCard.style.borderLeftColor = '#ef4444';
+                            statusIcon.innerHTML = '<i class="fas fa-circle-xmark text-red-500"></i>';
+                            statusIcon.className = 'w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-2xl bg-red-500/20';
+                            statusLabel.innerHTML = '<span class="text-red-400">Status: OUT</span>';
+                            statusDetail.textContent = injury.type ? injury.type.description || 'LeBron James is currently listed as out.' : 'LeBron James is currently listed as out.';
+                        } else if (status === 'day-to-day' || status === 'questionable') {
+                            statusCard.style.borderLeftColor = '#eab308';
+                            statusIcon.innerHTML = '<i class="fas fa-triangle-exclamation text-yellow-500"></i>';
+                            statusIcon.className = 'w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-2xl bg-yellow-500/20';
+                            statusLabel.innerHTML = '<span class="text-yellow-400">Status: ' + injury.status.toUpperCase() + '</span>';
+                            statusDetail.textContent = injury.type ? injury.type.description || '' : 'LeBron James is listed as ' + injury.status + '.';
+                        } else {
+                            statusCard.style.borderLeftColor = '#22c55e';
+                            statusIcon.innerHTML = '<i class="fas fa-circle-check text-green-500"></i>';
+                            statusIcon.className = 'w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-2xl bg-green-500/20';
+                            statusLabel.innerHTML = '<span class="text-green-400">Status: ' + (injury.status || 'ACTIVE').toUpperCase() + '</span>';
+                            statusDetail.textContent = 'LeBron James is available to play.';
+                        }
+                    } else {
+                        banner.classList.remove('hidden');
+                        statusCard.style.borderLeftColor = '#22c55e';
+                        statusIcon.innerHTML = '<i class="fas fa-circle-check text-green-500"></i>';
+                        statusIcon.className = 'w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-2xl bg-green-500/20';
+                        statusLabel.innerHTML = '<span class="text-green-400">Status: ACTIVE</span>';
+                        statusDetail.textContent = 'LeBron James has no reported injuries.';
+                    }
+                }
+            } catch (e) { console.log('Injury fetch error:', e); }
+
+            // Fetch news
+            try {
+                const newsRes = await fetch(ESPN_NEWS);
+                if (!newsRes.ok) throw new Error('News fetch failed');
+                const newsData = await newsRes.json();
+                const articles = (newsData.articles || []).filter(a => {
+                    const cats = (a.categories || []).map(c => (c.description || '').toLowerCase());
+                    const text = ((a.headline || '') + ' ' + (a.description || '')).toLowerCase();
+                    return cats.some(c => c.includes('lakers') || c.includes('lebron')) ||
+                           text.includes('lebron') || text.includes('lakers');
+                }).slice(0, 6);
+
+                if (articles.length === 0) {
+                    // Fallback: show general NBA news
+                    const fallback = (newsData.articles || []).slice(0, 4);
+                    renderNews(fallback, true);
+                } else {
+                    renderNews(articles, false);
+                }
+            } catch (e) {
+                grid.innerHTML = '<p class="text-gray-500 text-center md:col-span-2 font-display uppercase tracking-wider text-sm py-8">Unable to load news. Check back later.</p>';
+            }
+
+            function renderNews(articles, isGeneral) {
+                grid.innerHTML = '';
+                if (isGeneral) {
+                    grid.innerHTML = '<p class="text-gray-500 text-center md:col-span-2 text-sm mb-4">No LeBron/Lakers news right now. Here\'s the latest from around the NBA:</p>';
+                }
+                articles.forEach((a, i) => {
+                    const img = a.images && a.images[0] ? a.images[0].url : '';
+                    const link = a.links && a.links.web ? a.links.web.href || '#' : '#';
+                    const date = a.published ? new Date(a.published).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                    const card = document.createElement('a');
+                    card.href = link;
+                    card.target = '_blank';
+                    card.rel = 'noopener';
+                    card.className = 'glass-card rounded-xl overflow-hidden group cursor-pointer block hover:border-lebron-gold/40 transition-all';
+                    card.innerHTML = (img ? '<div class="aspect-[16/9] overflow-hidden"><img src="' + img + '" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" /></div>' : '') +
+                        '<div class="p-4">' +
+                        '<p class="text-gray-500 text-xs font-display uppercase tracking-wider mb-1">' + date + '</p>' +
+                        '<h3 class="text-white font-semibold leading-snug group-hover:text-lebron-gold transition-colors">' + (a.headline || '') + '</h3>' +
+                        (a.description ? '<p class="text-gray-400 text-sm mt-2 line-clamp-2">' + a.description + '</p>' : '') +
+                        '</div>';
+                    grid.appendChild(card);
+                });
+            }
         })();
 
         // ===== Dynamic Schedule =====
